@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - SINCET{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>SINCET</h2>
+            <span class="department">{{ session['department'] }} Admin</span>
+        </div>
+        <nav>
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-item active">
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('admin_students') }}" class="nav-item">
+                <span>Students</span>
+            </a>
+            <a href="{{ url_for('admin_leave_approvals') }}" class="nav-item">
+                <span>Leave Approvals</span> <span id="pending-count" class="badge">{{ pending_leaves }}</span>
+            </a>
+            <a href="{{ url_for('add_student') }}" class="nav-item">
+                <span>Add Student</span>
+            </a>
+            <a href="{{ url_for('bulk_import') }}" class="nav-item">
+                <span>Bulk Import</span>
+            </a>
+            <a href="{{ url_for('user_credentials') }}" class="nav-item">
+                <span>User Credentials</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item logout-btn">
+                <span>Logout</span>
+            </a>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <div class="content-header">
+            <h1>Dashboard</h1>
+            <p style="color: var(--text-secondary); margin-top: 8px;">Welcome back, {{ session['department'] }} Admin</p>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card card-blue">
+                <div class="stat-icon">STUDENTS</div>
+                <h3>Total Students</h3>
+                <p>{{ total_students }}</p>
+            </div>
+            <div class="stat-card card-amber">
+                <div class="stat-icon">PENDING</div>
+                <h3>Pending Leaves</h3>
+                <p>{{ pending_leaves }}</p>
+            </div>
+            <div class="stat-card card-green">
+                <div class="stat-icon">APPROVED</div>
+                <h3>Approved Leaves</h3>
+                <p>{{ approved_leaves }}</p>
+            </div>
+            <div class="stat-card card-red">
+                <div class="stat-icon">REJECTED</div>
+                <h3>Rejected Leaves</h3>
+                <p>{{ rejected_leaves }}</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <h2 style="margin-bottom: 20px;">Quick Actions</h2>
+        <div class="quick-actions">
+            <a href="{{ url_for('bulk_import') }}" class="action-card">
+                <span class="icon">IMPORT</span>
+                <h3>Bulk Import</h3>
+                <p>Import students from Excel file</p>
+            </a>
+            <a href="{{ url_for('add_student') }}" class="action-card">
+                <span class="icon">ADD</span>
+                <h3>Add Student</h3>
+                <p>Add a single student manually</p>
+            </a>
+            <a href="{{ url_for('user_credentials') }}" class="action-card">
+                <span class="icon">KEYS</span>
+                <h3>User Credentials</h3>
+                <p>View all student passwords</p>
+            </a>
+            <a href="{{ url_for('admin_leave_approvals') }}" class="action-card">
+                <span class="icon">REVIEW</span>
+                <h3>Leave Requests</h3>
+                <p>Review pending applications</p>
+            </a>
+        </div>
+
+        <div class="recent-leaves" style="margin-top: 40px;">
+            <h2 style="margin-bottom: 20px;">Recent Leave Requests</h2>
+            {% if recent_leaves %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Year</th>
+                        <th>Dates</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for leave in recent_leaves %}
+                    <tr class="table-row-hover" onclick="window.location.href='{{ url_for('admin_leave_detail', leave_id=leave['id']) }}'" style="cursor: pointer;">
+                        <td>{{ leave['name'] }}</td>
+                        <td>{{ leave['year'] }}</td>
+                        <td>{{ leave['from_date'] }} - {{ leave['to_date'] }}</td>
+                        <td><span class="status {{ leave['status'] }}">{{ leave['status'] }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="info-box">
+                <p>No recent leave requests. All caught up!</p>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+{% endblock %}

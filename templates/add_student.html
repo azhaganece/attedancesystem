@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Add Student - SINCET{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>SINCET</h2>
+            <span class="department">{{ session['department'] }} Admin</span>
+        </div>
+        <nav>
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('admin_students') }}" class="nav-item">
+                <span>Students</span>
+            </a>
+            <a href="{{ url_for('admin_leave_approvals') }}" class="nav-item">
+                <span>Leave Approvals</span>
+            </a>
+            <a href="{{ url_for('add_student') }}" class="nav-item active">
+                <span>Add Student</span>
+            </a>
+            <a href="{{ url_for('bulk_import') }}" class="nav-item">
+                <span>Bulk Import</span>
+            </a>
+            <a href="{{ url_for('user_credentials') }}" class="nav-item">
+                <span>User Credentials</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item logout-btn">
+                <span>Logout</span>
+            </a>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <div class="content-header">
+            <div class="header-actions">
+                <a href="{{ url_for('admin_students') }}" class="btn-back">Back to Students</a>
+                <h1>Add Student</h1>
+            </div>
+            <p style="color: var(--text-secondary); margin-top: 8px;">Add a new student to {{ session['department'] }} department</p>
+        </div>
+        <div class="form-container">
+            <form method="POST" class="form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" name="name" placeholder="Enter student's full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register_number">Register Number</label>
+                        <input type="text" id="register_number" name="register_number" placeholder="e.g., 2024CSE001" required>
+                        <small>Password will be the last 6 digits</small>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="year">Year</label>
+                        <select id="year" name="year" required>
+                            <option value="">-- Select Year --</option>
+                            <option value="1st Year">1st Year</option>
+                            <option value="2nd Year">2nd Year</option>
+                            <option value="3rd Year">3rd Year</option>
+                            <option value="4th Year">4th Year</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="student@email.com" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phone">Student Phone</label>
+                        <input type="tel" id="phone" name="phone" placeholder="10-digit phone number" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="parent_phone">Parent Phone</label>
+                        <input type="tel" id="parent_phone" name="parent_phone" placeholder="10-digit phone number" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="parent_name">Parent Name</label>
+                    <input type="text" id="parent_name" name="parent_name" placeholder="Enter parent's full name" required>
+                </div>
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <textarea id="address" name="address" placeholder="Enter complete address" rows="3" required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Add Student</button>
+                    <a href="{{ url_for('admin_students') }}" class="btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+
+        <div style="margin-top: 32px; padding: 24px; background: var(--glass-bg); border-radius: 16px; border: 1px solid var(--glass-border);">
+            <h3 style="margin-bottom: 12px;">Need to add multiple students?</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">Use the Bulk Import feature to add students from an Excel file.</p>
+            <a href="{{ url_for('bulk_import') }}" class="btn-primary">Go to Bulk Import</a>
+        </div>
+    </main>
+</div>
+{% endblock %}
+

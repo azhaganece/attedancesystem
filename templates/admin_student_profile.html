@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Student Profile - SINCET{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>SINCET</h2>
+            <span class="department">{{ session['department'] }} Admin</span>
+        </div>
+        <nav>
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('admin_students') }}" class="nav-item active">
+                <span>Students</span>
+            </a>
+            <a href="{{ url_for('admin_leave_approvals') }}" class="nav-item">
+                <span>Leave Approvals</span>
+            </a>
+            <a href="{{ url_for('add_student') }}" class="nav-item">
+                <span>Add Student</span>
+            </a>
+            <a href="{{ url_for('bulk_import') }}" class="nav-item">
+                <span>Bulk Import</span>
+            </a>
+            <a href="{{ url_for('user_credentials') }}" class="nav-item">
+                <span>User Credentials</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item logout-btn">
+                <span>Logout</span>
+            </a>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <div class="content-header">
+            <div class="header-actions">
+                <a href="{{ url_for('admin_students') }}" class="btn-back">Back to Students</a>
+                <h1>{{ student['name'] }}</h1>
+                <form action="{{ url_for('delete_student', student_id=student['student_id']) }}" method="POST" onsubmit="return confirm('Delete {{ student['name'] }} and all leave records? This cannot be undone.');">
+                    <input type="hidden" name="next_page" value="profile">
+                    <button type="submit" class="btn-delete-student profile-delete">Delete Student</button>
+                </form>
+            </div>
+            <p style="color: var(--text-secondary); margin-top: 8px;">Student Profile - {{ student['department'] }} | {{ student['year'] }}</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card card-blue">
+                <div class="stat-icon">DAYS</div>
+                <h3>Days Used</h3>
+                <p>{{ total_used }}</p>
+            </div>
+            <div class="stat-card card-green">
+                <div class="stat-icon">OK</div>
+                <h3>Approved</h3>
+                <p>{{ total_approved }}</p>
+            </div>
+            <div class="stat-card card-red">
+                <div class="stat-icon">NO</div>
+                <h3>Rejected</h3>
+                <p>{{ total_rejected }}</p>
+            </div>
+            <div class="stat-card card-amber">
+                <div class="stat-icon">WAIT</div>
+                <h3>Pending</h3>
+                <p>{{ total_pending }}</p>
+            </div>
+        </div>
+
+        <!-- Student Info Card -->
+        <div class="leave-details-card">
+            <div class="detail-section">
+                <h3>Personal Information</h3>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Student ID</span>
+                        <span class="detail-value">{{ student['student_id'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Register Number</span>
+                        <span class="detail-value">{{ student['register_number'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Department</span>
+                        <span class="detail-value">{{ student['department'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Year</span>
+                        <span class="detail-value">{{ student['year'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value">{{ student['email'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Phone</span>
+                        <span class="detail-value">{{ student['phone'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Parent Name</span>
+                        <span class="detail-value">{{ student['parent_name'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Parent Phone</span>
+                        <span class="detail-value">{{ student['parent_phone'] }}</span>
+                    </div>
+                    <div class="detail-item" style="grid-column: 1 / -1;">
+                        <span class="detail-label">Address</span>
+                        <span class="detail-value">{{ student['address'] }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leave History -->
+        <h2 style="margin: 32px 0 20px;">Leave History</h2>
+        {% if leaves %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Applied Date</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Days</th>
+                    <th>Session</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for leave in leaves %}
+                <tr onclick="window.location.href='{{ url_for('admin_leave_detail', leave_id=leave['id']) }}'" style="cursor: pointer;">
+                    <td>{{ leave['applied_time'][:10] }}</td>
+                    <td>{{ leave['from_date'] }}</td>
+                    <td>{{ leave['to_date'] }}</td>
+                    <td>{{ leave['num_days'] }}</td>
+                    <td>{{ leave['session_type'] }}</td>
+                    <td><span class="status {{ leave['status'] }}">{{ leave['status'] }}</span></td>
+                    <td>{{ leave['admin_remarks'] or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="info-box">
+            <p>No leave applications found for this student.</p>
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}
+

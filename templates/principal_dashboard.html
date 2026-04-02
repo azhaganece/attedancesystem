@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Principal Dashboard - SINCET{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>SINCET</h2>
+            <span class="department">Principal Panel</span>
+        </div>
+        <nav>
+            <a href="{{ url_for('principal_dashboard') }}" class="nav-item active">
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('principal_all_students') }}" class="nav-item">
+                <span>All Students</span>
+            </a>
+            <a href="{{ url_for('principal_all_leaves') }}" class="nav-item">
+                <span>All Leaves</span>
+            </a>
+            <a href="{{ url_for('create_admin') }}" class="nav-item">
+                <span>Create Admin</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item logout-btn">
+                <span>Logout</span>
+            </a>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <div class="content-header">
+            <h1>Principal Dashboard</h1>
+            <p style="color: var(--text-secondary); margin-top: 8px;">Overview of all departments</p>
+        </div>
+
+        <!-- Overall Stats -->
+        <div class="stats-grid">
+            <div class="stat-card card-blue">
+                <div class="stat-icon">TOTAL</div>
+                <h3>Total Students</h3>
+                <p>{{ total_students }}</p>
+            </div>
+            <div class="stat-card card-amber">
+                <div class="stat-icon">PENDING</div>
+                <h3>Pending Leaves</h3>
+                <p>{{ total_pending }}</p>
+            </div>
+            <div class="stat-card card-green">
+                <div class="stat-icon">APPROVED</div>
+                <h3>Approved Leaves</h3>
+                <p>{{ total_approved }}</p>
+            </div>
+            <div class="stat-card card-red">
+                <div class="stat-icon">ADMINS</div>
+                <h3>Total Admins</h3>
+                <p>{{ total_admins }}</p>
+            </div>
+        </div>
+
+        <!-- Department Stats -->
+        <h2 style="margin: 32px 0 20px;">Department Overview</h2>
+        <div class="stats-grid">
+            {% for dept in dept_stats %}
+            <div class="stat-card">
+                <h3 style="font-size: 1.5rem; margin-bottom: 16px; color: white;">{{ dept.name }}</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left;">
+                    <div>
+                        <span style="color: var(--text-secondary); font-size: 12px;">Students</span>
+                        <p style="font-size: 1.2rem; margin: 0;">{{ dept.students }}</p>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-secondary); font-size: 12px;">Pending</span>
+                        <p style="font-size: 1.2rem; margin: 0; color: #ffc107;">{{ dept.pending }}</p>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-secondary); font-size: 12px;">Approved</span>
+                        <p style="font-size: 1.2rem; margin: 0; color: #00d9a5;">{{ dept.approved }}</p>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-secondary); font-size: 12px;">Rejected</span>
+                        <p style="font-size: 1.2rem; margin: 0; color: #ff4757;">{{ dept.rejected }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Admin Accounts -->
+        <h2 style="margin: 32px 0 20px;">Admin Accounts</h2>
+        <div class="form-container" style="padding: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Manage Admins</h3>
+                <a href="{{ url_for('create_admin') }}" class="btn-primary">Create New Admin</a>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Created By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for admin in admins %}
+                    <tr>
+                        <td>{{ admin['username'] }}</td>
+                        <td>{{ admin['name'] if admin['name'] else admin['department'] + ' Admin' }}</td>
+                        <td><span class="department-badge {{ admin['department']|lower }}">{{ admin['department'] }}</span></td>
+                        <td>{{ admin['created_by'] if admin['created_by'] else 'system' }}</td>
+                        <td>
+                            <form action="{{ url_for('delete_admin', admin_id=admin['id']) }}" method="POST" style="display: inline;">
+                                <button type="submit" class="reset-btn" onclick="return confirm('Delete admin {{ admin['username'] }}?')">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Recent Leaves -->
+        <h2 style="margin: 32px 0 20px;">Recent Leave Applications</h2>
+        {% if recent_leaves %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Department</th>
+                    <th>Year</th>
+                    <th>Dates</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for leave in recent_leaves %}
+                <tr onclick="window.location.href='{{ url_for('admin_leave_detail', leave_id=leave['id']) }}'" style="cursor: pointer;">
+                    <td>{{ leave['name'] }}</td>
+                    <td><span class="department-badge {{ leave['department']|lower }}">{{ leave['department'] }}</span></td>
+                    <td>{{ leave['year'] }}</td>
+                    <td>{{ leave['from_date'] }} - {{ leave['to_date'] }}</td>
+                    <td><span class="status {{ leave['status'] }}">{{ leave['status'] }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="info-box">
+            <p>No recent leave applications.</p>
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}
+

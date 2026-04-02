@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Login - SINCET Digital Leave Form{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-logo">
+            <div class="logo-icon" aria-hidden="true"></div>
+            <div class="logo-shell">
+                <img src="{{ url_for('static', filename='img/sincet-logo.png') }}" alt="SINCET Logo" class="logo-image">
+            </div>
+        </div>
+        <div class="login-title">
+            <h1> SINCET</h1>
+            <h2>Digital Leave Form</h2>
+            <p class="tagline">Leave Management System</p>
+        </div>
+
+        <div class="login-type-tabs">
+            <button type="button" class="login-type-btn active" data-type="admin" onclick="switchLoginType('admin', this)">
+                <span class="tab-icon">👨‍💼</span>
+                <span class="tab-text">Admin</span>
+            </button>
+            <button type="button" class="login-type-btn" data-type="student" onclick="switchLoginType('student', this)">
+                <span class="tab-icon">🎓</span>
+                <span class="tab-text">Student</span>
+            </button>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" id="login-form">
+            <input type="hidden" id="login_type" name="login_type" value="admin">
+
+            <div class="form-group">
+                <label for="username" id="username-label">
+                    <span class="label-icon">👤</span> Admin Username
+                </label>
+                <input type="text" id="username" name="username" placeholder="Enter username" required autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="password">
+                    <span class="label-icon">🔒</span> Password
+                </label>
+                <input type="password" id="password" name="password" placeholder="Enter password" required>
+            </div>
+            <button type="submit" class="btn-primary btn-login" id="login-btn">
+                <span class="btn-text">Sign In</span>
+                <span class="btn-icon">→</span>
+            </button>
+        </form>
+
+        <div class="login-hints">
+            <div class="hint active" id="admin-hint">
+                <strong>Principal ID:</strong>
+                {{ principal_login['username'] }} / {{ principal_login['password'] }}
+                <br>
+                <strong>Department Admin IDs:</strong>
+                {% for account in admin_login_ids %}
+                    {{ account['department'] }}: {{ account['username'] }} / {{ account['password'] }}{% if not loop.last %} | {% endif %}
+                {% endfor %}
+            </div>
+            <div class="hint" id="student-hint">
+                <strong>Student Login:</strong> Use student ID and password from the User Credentials page.
+            </div>
+        </div>
+
+        <div class="login-footer">
+            <p>SINCET Leave Management Portal</p>
+        </div>
+    </div>
+</div>
+
+<script>
+function switchLoginType(type, buttonElement) {
+    var typeInput = document.getElementById('login_type');
+    var buttons = document.querySelectorAll('.login-type-btn');
+    var usernameLabel = document.getElementById('username-label');
+    var usernameInput = document.getElementById('username');
+    var adminHint = document.getElementById('admin-hint');
+    var studentHint = document.getElementById('student-hint');
+
+    // Remove active from all buttons
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].classList.remove('active');
+    }
+
+    // Add active to clicked button
+    if (buttonElement) {
+        buttonElement.classList.add('active');
+    }
+
+    // Set hidden input
+    typeInput.value = type;
+
+    // Update labels
+    if (type === 'admin') {
+        usernameLabel.innerHTML = '<span class="label-icon">👤</span> Admin Username';
+        usernameInput.placeholder = 'Enter username';
+        adminHint.classList.add('active');
+        studentHint.classList.remove('active');
+    } else {
+        usernameLabel.innerHTML = '<span class="label-icon">🎓</span> Student ID';
+        usernameInput.placeholder = 'Enter student ID';
+        adminHint.classList.remove('active');
+        studentHint.classList.add('active');
+    }
+
+    // Clear fields
+    usernameInput.value = '';
+    document.getElementById('password').value = '';
+    usernameInput.focus();
+}
+
+var themes = [
+    { key: 'aurora' },
+    { key: 'sunrise' },
+    { key: 'emerald' }
+];
+
+function applyTheme(themeKey) {
+    document.body.setAttribute('data-theme', themeKey);
+}
+
+function rotateThemeAuto() {
+    var activeTheme = document.body.getAttribute('data-theme') || themes[0].key;
+    var currentIndex = themes.findIndex(function(item) { return item.key === activeTheme; });
+    var nextIndex = (currentIndex + 1) % themes.length;
+    applyTheme(themes[nextIndex].key);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var seed = new Date().getSeconds() % themes.length;
+    applyTheme(themes[seed].key);
+    setInterval(rotateThemeAuto, 4500);
+});
+
+document.getElementById('login-form').onsubmit = function() {
+    var btn = document.getElementById('login-btn');
+    btn.innerHTML = '<span class="spinner"></span> Signing in...';
+    btn.disabled = true;
+};
+</script>
+{% endblock %}

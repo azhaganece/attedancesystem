@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}Apply Leave - SINCET{% endblock %}
+
+{% block content %}
+<div class="student-layout">
+    <header class="student-header">
+        <div class="header-left">
+            <h1>SINCET</h1>
+            <p class="student-id">{{ student['student_id'] }} | {{ session['department'] }} - {{ student['year'] }}</p>
+        </div>
+        <nav>
+            <a href="{{ url_for('student_dashboard') }}" class="nav-btn">Dashboard</a>
+            <a href="{{ url_for('apply_leave') }}" class="nav-btn active">Apply Leave</a>
+            <a href="{{ url_for('leave_status') }}" class="nav-btn">Status</a>
+            <a href="{{ url_for('my_leaves') }}" class="nav-btn">My Leaves</a>
+            <a href="{{ url_for('logout') }}" class="nav-btn logout-btn">Logout</a>
+        </nav>
+    </header>
+    <main class="student-main">
+        <div class="content-header">
+            <div class="header-actions">
+                <a href="{{ url_for('student_dashboard') }}" class="btn-back">Back to Dashboard</a>
+                <h2>Leave Application Form</h2>
+            </div>
+        </div>
+        <div class="form-container">
+            <form method="POST" class="form" id="leave-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" name="name" value="{{ student['name'] }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="register_number">Register Number</label>
+                        <input type="text" id="register_number" name="register_number" value="{{ student['register_number'] }}" readonly>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="branch">Department</label>
+                        <input type="text" id="branch" name="branch" value="{{ student['department'] }}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="year">Year</label>
+                        <input type="text" id="year" name="year" value="{{ student['year'] }}" readonly>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="reason">Reason for Leave *</label>
+                        <textarea id="reason" name="reason" maxlength="2000" required placeholder="Explain why you need leave..."></textarea>
+                        <div class="word-count">Characters: <span id="char-count">0</span>/2000</div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Leave Session *</label>
+                        <div class="session-options">
+                            <button type="button" class="session-btn" data-value="BOTH">Full Day</button>
+                            <button type="button" class="session-btn" data-value="FN">Forenoon (FN)</button>
+                            <button type="button" class="session-btn" data-value="AN">Afternoon (AN)</button>
+                        </div>
+                        <input type="hidden" id="session_type" name="session_type" value="BOTH">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="from_date">Leave From *</label>
+                        <input type="date" id="from_date" name="from_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="to_date">Leave To *</label>
+                        <input type="date" id="to_date" name="to_date" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="num_days">Number of Days</label>
+                        <input type="number" id="num_days" name="num_days" step="0.5" min="0.5" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="days_already_taken">Days Already Taken</label>
+                        <input type="number" id="days_already_taken" name="days_already_taken" value="{{ days_already_taken }}" readonly>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Student Signature *</label>
+                        <canvas id="student-canvas" class="signature-canvas"></canvas>
+                        <small>Draw your signature in the box above</small>
+                        <button type="button" id="clear-student" class="btn-secondary" style="margin-top: 8px;">Clear Signature</button>
+                        <input type="hidden" id="student_signature" name="student_signature">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Parent Signature *</label>
+                        <canvas id="parent-canvas" class="signature-canvas"></canvas>
+                        <small>Parent/Guardian: Draw signature in the box above</small>
+                        <button type="button" id="clear-parent" class="btn-secondary" style="margin-top: 8px;">Clear Signature</button>
+                        <input type="hidden" id="parent_signature" name="parent_signature">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary" id="submit-btn">Submit Application</button>
+                    <a href="{{ url_for('student_dashboard') }}" class="btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<script>
+// Canvas setup
+let studentCanvas = document.getElementById('student-canvas');
+let parentCanvas = document.getElementById('parent-canvas');
+let studentCtx = studentCanvas.getContext('2d');
+let parentCtx = parentCanvas.getContext('2d');
+let isDrawingStudent = false, isDrawingParent = false;
+let hasStudentSignature = false, hasParentSignature = false;
+
+// Set canvas size
+function resizeCanvas(canvas) {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+}
+resizeCanvas(studentCanvas);
+resizeCanvas(parentCanvas);
+
+// Session button handling
+document.querySelectorAll('.session-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelectorAll('.session-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById('session_type').value = this.dataset.value;
+        calculateDays();
+    });
+});
+
+// Set default session
+document.querySelector('.session-btn[data-value="BOTH"]').classList.add('active');
+
+// Date calculation
+document.getElementById('from_date').addEventListener('change', calculateDays);
+document.getElementById('to_date').addEventListener('change', calculateDays);
+
+function calculateDays() {
+    let from = new Date(document.getElementById('from_date').value);
+    let to = new Date(document.getElementById('to_date').value);
+    let sessionType = document.getElementById('session_type').value;
+
+    if (from && to && !isNaN(from) && !isNaN(to) && from <= to) {
+        let diff = Math.ceil((to - from) / (1000 * 60 * 60 * 24)) + 1;
+        if (sessionType === 'FN' || sessionType === 'AN') {
+            diff = diff * 0.5;
+        }
+        document.getElementById('num_days').value = diff;
+    } else {
+        document.getElementById('num_days').value = '';
+    }
+}
+
+// Character count
+document.getElementById('reason').addEventListener('input', function() {
+    document.getElementById('char-count').textContent = this.value.length;
+});
+
+// Drawing functions
+function getPos(canvas, e) {
+    let rect = canvas.getBoundingClientRect();
+    let scaleX = canvas.width / rect.width;
+    let scaleY = canvas.height / rect.height;
+    return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+    };
+}
+
+function startDraw(canvas, ctx, e) {
+    let pos = getPos(canvas, e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    return true;
+}
+
+function draw(canvas, ctx, e) {
+    let pos = getPos(canvas, e);
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#667eea';
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+}
+
+// Student canvas events
+studentCanvas.addEventListener('mousedown', (e) => { isDrawingStudent = startDraw(studentCanvas, studentCtx, e); hasStudentSignature = true; });
+studentCanvas.addEventListener('mouseup', () => { isDrawingStudent = false; studentCtx.beginPath(); });
+studentCanvas.addEventListener('mouseout', () => { isDrawingStudent = false; studentCtx.beginPath(); });
+studentCanvas.addEventListener('mousemove', (e) => { if (isDrawingStudent) draw(studentCanvas, studentCtx, e); });
+
+// Touch support for student canvas
+studentCanvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    let touch = e.touches[0];
+    isDrawingStudent = startDraw(studentCanvas, studentCtx, touch);
+    hasStudentSignature = true;
+});
+studentCanvas.addEventListener('touchend', () => { isDrawingStudent = false; studentCtx.beginPath(); });
+studentCanvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (isDrawingStudent) draw(studentCanvas, studentCtx, e.touches[0]);
+});
+
+// Parent canvas events
+parentCanvas.addEventListener('mousedown', (e) => { isDrawingParent = startDraw(parentCanvas, parentCtx, e); hasParentSignature = true; });
+parentCanvas.addEventListener('mouseup', () => { isDrawingParent = false; parentCtx.beginPath(); });
+parentCanvas.addEventListener('mouseout', () => { isDrawingParent = false; parentCtx.beginPath(); });
+parentCanvas.addEventListener('mousemove', (e) => { if (isDrawingParent) draw(parentCanvas, parentCtx, e); });
+
+// Touch support for parent canvas
+parentCanvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    let touch = e.touches[0];
+    isDrawingParent = startDraw(parentCanvas, parentCtx, touch);
+    hasParentSignature = true;
+});
+parentCanvas.addEventListener('touchend', () => { isDrawingParent = false; parentCtx.beginPath(); });
+parentCanvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if (isDrawingParent) draw(parentCanvas, parentCtx, e.touches[0]);
+});
+
+// Clear buttons
+document.getElementById('clear-student').addEventListener('click', (e) => {
+    e.preventDefault();
+    studentCtx.clearRect(0, 0, studentCanvas.width, studentCanvas.height);
+    hasStudentSignature = false;
+});
+
+document.getElementById('clear-parent').addEventListener('click', (e) => {
+    e.preventDefault();
+    parentCtx.clearRect(0, 0, parentCanvas.width, parentCanvas.height);
+    hasParentSignature = false;
+});
+
+// Form submission
+document.getElementById('leave-form').addEventListener('submit', function(e) {
+    // Save signatures as base64
+    let studentSig = studentCanvas.toDataURL('image/png');
+    let parentSig = parentCanvas.toDataURL('image/png');
+
+    // Remove the data:image/png;base64, prefix for cleaner storage
+    document.getElementById('student_signature').value = studentSig.split(',')[1] || studentSig;
+    document.getElementById('parent_signature').value = parentSig.split(',')[1] || parentSig;
+
+    // Validate
+    if (!document.getElementById('reason').value.trim()) {
+        e.preventDefault();
+        alert('Please enter a reason for leave');
+        return false;
+    }
+
+    if (!document.getElementById('from_date').value || !document.getElementById('to_date').value) {
+        e.preventDefault();
+        alert('Please select leave dates');
+        return false;
+    }
+
+    if (!hasStudentSignature || !hasParentSignature) {
+        e.preventDefault();
+        alert('Both signatures are required');
+        return false;
+    }
+
+    // Show loading
+    let btn = document.getElementById('submit-btn');
+    btn.innerHTML = '<span class="loading"></span> Submitting...';
+    btn.disabled = true;
+});
+</script>
+{% endblock %}

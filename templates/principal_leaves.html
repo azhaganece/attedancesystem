@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}All Leaves - SINCET{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2> SINCET</h2>
+            <span class="department">Principal Panel</span>
+        </div>
+        <nav>
+            <a href="{{ url_for('principal_dashboard') }}" class="nav-item">
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('principal_all_students') }}" class="nav-item">
+                <span>All Students</span>
+            </a>
+            <a href="{{ url_for('principal_all_leaves') }}" class="nav-item active">
+                <span>All Leaves</span>
+            </a>
+            <a href="{{ url_for('create_admin') }}" class="nav-item">
+                <span>Create Admin</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item logout-btn">
+                <span>Logout</span>
+            </a>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <div class="content-header">
+            <div class="header-actions">
+                <a href="{{ url_for('principal_dashboard') }}" class="btn-back">Back to Dashboard</a>
+                <h1>All Leave Applications</h1>
+            </div>
+            <p style="color: var(--text-secondary); margin-top: 8px;">View and manage leaves across all departments</p>
+        </div>
+
+        <!-- Filters -->
+        <div style="display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
+            <div class="year-tabs">
+                <a href="{{ url_for('principal_all_leaves', department='all', status=status) }}" class="{% if department == 'all' %}active{% endif %}">All Depts</a>
+                <a href="{{ url_for('principal_all_leaves', department='CSE', status=status) }}" class="{% if department == 'CSE' %}active{% endif %}">CSE</a>
+                <a href="{{ url_for('principal_all_leaves', department='ECE', status=status) }}" class="{% if department == 'ECE' %}active{% endif %}">ECE</a>
+                <a href="{{ url_for('principal_all_leaves', department='IT', status=status) }}" class="{% if department == 'IT' %}active{% endif %}">IT</a>
+                <a href="{{ url_for('principal_all_leaves', department='AIDS', status=status) }}" class="{% if department == 'AIDS' %}active{% endif %}">AIDS</a>
+            </div>
+            <div class="status-tabs">
+                <a href="{{ url_for('principal_all_leaves', department=department, status='all') }}" class="{% if status == 'all' %}active{% endif %}">All Status</a>
+                <a href="{{ url_for('principal_all_leaves', department=department, status='pending') }}" class="{% if status == 'pending' %}active{% endif %}">Pending</a>
+                <a href="{{ url_for('principal_all_leaves', department=department, status='approved') }}" class="{% if status == 'approved' %}active{% endif %}">Approved</a>
+                <a href="{{ url_for('principal_all_leaves', department=department, status='rejected') }}" class="{% if status == 'rejected' %}active{% endif %}">Rejected</a>
+            </div>
+        </div>
+
+        {% if leaves %}
+        <div class="leaves-grid">
+            {% for leave in leaves %}
+            <a href="{{ url_for('admin_leave_detail', leave_id=leave['id']) }}" class="leave-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <span class="department-badge {{ leave['department']|lower }}">{{ leave['department'] }}</span>
+                    <span class="status {{ leave['status'] }}">{{ leave['status'] }}</span>
+                </div>
+                <h3>{{ leave['name'] }}</h3>
+                <p><strong>Year:</strong> {{ leave['year'] }}</p>
+                <p><strong>Dates:</strong> {{ leave['from_date'] }} - {{ leave['to_date'] }}</p>
+                <p><strong>Days:</strong> {{ leave['num_days'] }}</p>
+                <p style="margin-top: 8px; color: var(--text-secondary); font-size: 13px;">{{ leave['reason'][:60] }}{% if leave['reason']|length > 60 %}...{% endif %}</p>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="info-box">
+            <p>No leave applications found with the selected filters.</p>
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}
+

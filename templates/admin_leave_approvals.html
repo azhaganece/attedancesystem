@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Leave Approvals - SINCET{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>SINCET</h2>
+            <span class="department">{{ session['department'] }} Admin</span>
+        </div>
+        <nav>
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('admin_students') }}" class="nav-item">
+                <span>Students</span>
+            </a>
+            <a href="{{ url_for('admin_leave_approvals') }}" class="nav-item active">
+                <span>Leave Approvals</span>
+            </a>
+            <a href="{{ url_for('add_student') }}" class="nav-item">
+                <span>Add Student</span>
+            </a>
+            <a href="{{ url_for('bulk_import') }}" class="nav-item">
+                <span>Bulk Import</span>
+            </a>
+            <a href="{{ url_for('user_credentials') }}" class="nav-item">
+                <span>User Credentials</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item logout-btn">
+                <span>Logout</span>
+            </a>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <div class="content-header">
+            <h1>Leave Approvals</h1>
+            <p style="color: var(--text-secondary); margin-top: 8px;">Review and manage student leave requests</p>
+        </div>
+        <div class="status-tabs">
+            <a href="{{ url_for('admin_leave_approvals', status='pending') }}" class="{% if status == 'pending' %}active{% endif %}">Pending</a>
+            <a href="{{ url_for('admin_leave_approvals', status='approved') }}" class="{% if status == 'approved' %}active{% endif %}">Approved</a>
+            <a href="{{ url_for('admin_leave_approvals', status='rejected') }}" class="{% if status == 'rejected' %}active{% endif %}">Rejected</a>
+        </div>
+        {% if leaves %}
+        <div class="leaves-grid">
+            {% for leave in leaves %}
+            <a href="{{ url_for('admin_leave_detail', leave_id=leave['id']) }}" class="leave-card leave-card-{{ leave['status'] }}">
+                <div class="leave-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3>{{ leave['name'] }}</h3>
+                    <span class="status {{ leave['status'] }}">{{ leave['status'] }}</span>
+                </div>
+                <p><strong>Year:</strong> {{ leave['year'] }}</p>
+                <p><strong>Dates:</strong> {{ leave['from_date'] }} - {{ leave['to_date'] }}</p>
+                <p><strong>Session:</strong> {{ leave['session_type'] }}</p>
+                <p><strong>Days:</strong> {{ leave['num_days'] }}</p>
+                <p style="margin-top: 12px; color: var(--text-secondary); font-size: 13px;"><strong>Reason:</strong> {{ leave['reason'][:80] }}{% if leave['reason']|length > 80 %}...{% endif %}</p>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="info-box">
+            <p>No {{ status }} leave requests found.</p>
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}
+

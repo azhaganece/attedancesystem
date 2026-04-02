@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}My Leaves - SINCET{% endblock %}
+
+{% block content %}
+<div class="student-layout">
+    <header class="student-header">
+        <div class="header-left">
+            <h1>SINCET</h1>
+            <p class="student-id">{{ session['student_name'] }} | {{ session['student_id'] }}</p>
+        </div>
+        <nav>
+            <a href="{{ url_for('student_dashboard') }}" class="nav-btn">Dashboard</a>
+            <a href="{{ url_for('apply_leave') }}" class="nav-btn">Apply Leave</a>
+            <a href="{{ url_for('leave_status') }}" class="nav-btn">Status</a>
+            <a href="{{ url_for('my_leaves') }}" class="nav-btn active">My Leaves</a>
+            <a href="{{ url_for('logout') }}" class="nav-btn logout-btn">Logout</a>
+        </nav>
+    </header>
+    <main class="student-main">
+        <div class="content-header">
+            <div class="header-actions">
+                <a href="{{ url_for('student_dashboard') }}" class="btn-back">Back to Dashboard</a>
+                <h2>All Leave Applications</h2>
+            </div>
+        </div>
+
+        {% if leaves %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Applied Date</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Days</th>
+                        <th>Session</th>
+                        <th>Status</th>
+                        <th>Remarks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for leave in leaves %}
+                    <tr>
+                        <td>{{ leave['applied_time'][:10] }}</td>
+                        <td>{{ leave['from_date'] }}</td>
+                        <td>{{ leave['to_date'] }}</td>
+                        <td>{{ leave['num_days'] }}</td>
+                        <td>{{ leave['session_type'] }}</td>
+                        <td><span class="status {{ leave['status'] }}">{{ leave['status'] }}</span></td>
+                        <td>{{ leave['admin_remarks'] if leave['admin_remarks'] else '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="info-box">
+                <p>No leave applications found. <a href="{{ url_for('apply_leave') }}">Apply for leave</a> to get started.</p>
+            </div>
+        {% endif %}
+
+        <div class="form-actions" style="margin-top: 32px;">
+            <a href="{{ url_for('apply_leave') }}" class="btn-primary">Apply for New Leave</a>
+            <a href="{{ url_for('student_dashboard') }}" class="btn-secondary">Back to Dashboard</a>
+        </div>
+    </main>
+</div>
+{% endblock %}
+

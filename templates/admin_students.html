@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Students - SINCET{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>SINCET</h2>
+            <span class="department">{{ session['department'] }} Admin</span>
+        </div>
+        <nav>
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('admin_students') }}" class="nav-item active">
+                <span>Students</span>
+            </a>
+            <a href="{{ url_for('admin_leave_approvals') }}" class="nav-item">
+                <span>Leave Approvals</span>
+            </a>
+            <a href="{{ url_for('add_student') }}" class="nav-item">
+                <span>Add Student</span>
+            </a>
+            <a href="{{ url_for('bulk_import') }}" class="nav-item">
+                <span>Bulk Import</span>
+            </a>
+            <a href="{{ url_for('user_credentials') }}" class="nav-item">
+                <span>User Credentials</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item logout-btn">
+                <span>Logout</span>
+            </a>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <div class="content-header">
+            <h1>Students</h1>
+            <p style="color: var(--text-secondary); margin-top: 8px;">Manage students in {{ session['department'] }} department</p>
+        </div>
+        <div class="year-tabs">
+            <a href="{{ url_for('admin_students', year='all') }}" class="{% if year == 'all' %}active{% endif %}">All Students</a>
+            <a href="{{ url_for('admin_students', year='1st Year') }}" class="{% if year == '1st Year' %}active{% endif %}">1st Year</a>
+            <a href="{{ url_for('admin_students', year='2nd Year') }}" class="{% if year == '2nd Year' %}active{% endif %}">2nd Year</a>
+            <a href="{{ url_for('admin_students', year='3rd Year') }}" class="{% if year == '3rd Year' %}active{% endif %}">3rd Year</a>
+            <a href="{{ url_for('admin_students', year='4th Year') }}" class="{% if year == '4th Year' %}active{% endif %}">4th Year</a>
+        </div>
+        {% if students %}
+        <div class="students-grid">
+            {% for student in students %}
+            <div class="student-card" onclick="window.location.href='{{ url_for('admin_student_profile', student_id=student['student_id']) }}'">
+                <div class="card-header">
+                    <span class="department-badge {{ student['department']|lower }}">{{ student['department'] }}</span>
+                </div>
+                <h3>{{ student['name'] }}</h3>
+                <p><strong>ID:</strong> {{ student['student_id'] }}</p>
+                <p><strong>Reg:</strong> {{ student['register_number'] }}</p>
+                <p><strong>Year:</strong> {{ student['year'] }}</p>
+                <div class="student-card-actions">
+                    <form action="{{ url_for('delete_student', student_id=student['student_id']) }}" method="POST" onsubmit="event.stopPropagation(); return confirm('Delete {{ student['name'] }} and all leave records? This cannot be undone.');">
+                        <input type="hidden" name="next_page" value="students">
+                        <button type="submit" class="btn-delete-student" onclick="event.stopPropagation();">Delete Student</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="info-box">
+            <p>No students found. <a href="{{ url_for('add_student') }}">Add a student</a> or <a href="{{ url_for('bulk_import') }}">bulk import</a> from Excel.</p>
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}

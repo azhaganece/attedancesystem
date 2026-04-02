@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Leave Status - SINCET{% endblock %}
+
+{% block content %}
+<div class="student-layout">
+    <header class="student-header">
+        <div class="header-left">
+            <h1>SINCET</h1>
+            <p class="student-id">{{ session['student_name'] }} | {{ session['student_id'] }}</p>
+        </div>
+        <nav>
+            <a href="{{ url_for('student_dashboard') }}" class="nav-btn">Dashboard</a>
+            <a href="{{ url_for('apply_leave') }}" class="nav-btn">Apply Leave</a>
+            <a href="{{ url_for('leave_status') }}" class="nav-btn active">Status</a>
+            <a href="{{ url_for('my_leaves') }}" class="nav-btn">My Leaves</a>
+            <a href="{{ url_for('logout') }}" class="nav-btn logout-btn">Logout</a>
+        </nav>
+    </header>
+    <main class="student-main">
+        <div class="content-header">
+            <div class="header-actions">
+                <a href="{{ url_for('student_dashboard') }}" class="btn-back">Back to Dashboard</a>
+                <h2>Leave Application Status</h2>
+            </div>
+        </div>
+
+        {% if leaves and leaves|length > 0 %}
+            {% set leave = leaves[0] %}
+            {% if leave['status'] == 'approved' %}
+                <div class="status-banner approved">
+                    <h2>Your Leave Has Been Approved</h2>
+                </div>
+            {% elif leave['status'] == 'rejected' %}
+                <div class="status-banner rejected">
+                    <h2>Your Leave Was Rejected</h2>
+                    {% if leave['admin_remarks'] %}
+                    <p style="margin-top: 8px;"><strong>Remarks:</strong> {{ leave['admin_remarks'] }}</p>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="status-banner pending">
+                    <h2>Under Review</h2>
+                    <p>Your application is being reviewed by the department admin.</p>
+                </div>
+            {% endif %}
+
+            <div class="leave-details-card">
+                <div class="detail-section">
+                    <h3>Leave Details</h3>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">From Date</span>
+                            <span class="detail-value">{{ leave['from_date'] }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">To Date</span>
+                            <span class="detail-value">{{ leave['to_date'] }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Number of Days</span>
+                            <span class="detail-value">{{ leave['num_days'] }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Session Type</span>
+                            <span class="detail-value">{{ leave['session_type'] }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Status</span>
+                            <span class="status {{ leave['status'] }}">{{ leave['status'] }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Applied On</span>
+                            <span class="detail-value">{{ leave['applied_time'] }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-section">
+                    <h3>Reason for Leave</h3>
+                    <p style="color: var(--text-secondary); line-height: 1.8;">{{ leave['reason'] }}</p>
+                </div>
+
+                {% if leave['processed_time'] %}
+                <div class="detail-section">
+                    <h3>Processing Information</h3>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Processed On</span>
+                            <span class="detail-value">{{ leave['processed_time'] }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Processed By</span>
+                            <span class="detail-value">{{ leave['processed_by'] }}</span>
+                        </div>
+                        {% if leave['admin_remarks'] %}
+                        <div class="detail-item" style="grid-column: 1 / -1;">
+                            <span class="detail-label">Admin Remarks</span>
+                            <span class="detail-value">{{ leave['admin_remarks'] }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if leaves|length > 1 %}
+            <h3 style="margin: 32px 0 16px;">Previous Applications</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Applied On</th>
+                        <th>From</th>
+                        <th>To</th>
+                        <th>Days</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in leaves[1:5] %}
+                    <tr>
+                        <td>{{ l['applied_time'][:10] }}</td>
+                        <td>{{ l['from_date'] }}</td>
+                        <td>{{ l['to_date'] }}</td>
+                        <td>{{ l['num_days'] }}</td>
+                        <td><span class="status {{ l['status'] }}">{{ l['status'] }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% endif %}
+        {% else %}
+            <div class="info-box">
+                <p>No leave applications found. <a href="{{ url_for('apply_leave') }}">Apply for leave</a></p>
+            </div>
+        {% endif %}
+
+        <div class="form-actions" style="margin-top: 32px;">
+            <a href="{{ url_for('apply_leave') }}" class="btn-primary">Apply for New Leave</a>
+            <a href="{{ url_for('my_leaves') }}" class="btn-secondary">View All Leaves</a>
+        </div>
+    </main>
+</div>
+{% endblock %}
+

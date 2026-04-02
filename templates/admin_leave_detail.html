@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Leave Detail - SINCET{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>SINCET</h2>
+            <span class="department">{{ session['department'] }} Admin</span>
+        </div>
+        <nav>
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-item">
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('admin_students') }}" class="nav-item">
+                <span>Students</span>
+            </a>
+            <a href="{{ url_for('admin_leave_approvals') }}" class="nav-item active">
+                <span>Leave Approvals</span>
+            </a>
+            <a href="{{ url_for('add_student') }}" class="nav-item">
+                <span>Add Student</span>
+            </a>
+            <a href="{{ url_for('bulk_import') }}" class="nav-item">
+                <span>Bulk Import</span>
+            </a>
+            <a href="{{ url_for('user_credentials') }}" class="nav-item">
+                <span>User Credentials</span>
+            </a>
+            <a href="{{ url_for('logout') }}" class="nav-item logout-btn">
+                <span>Logout</span>
+            </a>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <div class="content-header">
+            <div class="header-actions">
+                <a href="{{ url_for('admin_leave_approvals') }}" class="btn-back">Back to Approvals</a>
+                <h1>Leave Application Details</h1>
+            </div>
+        </div>
+
+        <!-- Status Badge -->
+        <div class="status-banner {{ leave['status'] }}">
+            {% if leave['status'] == 'pending' %}
+                This application is awaiting your review
+            {% elif leave['status'] == 'approved' %}
+                This application has been approved
+            {% else %}
+                This application has been rejected
+            {% endif %}
+        </div>
+
+        <div class="leave-details-card">
+            <div class="detail-section">
+                <h3>Student Information</h3>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Name</span>
+                        <span class="detail-value">{{ leave['name'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Student ID</span>
+                        <span class="detail-value">{{ leave['student_id'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Register Number</span>
+                        <span class="detail-value">{{ leave['register_number'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Year</span>
+                        <span class="detail-value">{{ leave['year'] }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3>Leave Information</h3>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">From Date</span>
+                        <span class="detail-value">{{ leave['from_date'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">To Date</span>
+                        <span class="detail-value">{{ leave['to_date'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Number of Days</span>
+                        <span class="detail-value">{{ leave['num_days'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Session Type</span>
+                        <span class="detail-value">{{ leave['session_type'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Days Already Taken</span>
+                        <span class="detail-value">{{ leave['days_already_taken'] }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Applied On</span>
+                        <span class="detail-value">{{ leave['applied_time'] }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3>Reason for Leave</h3>
+                <p style="color: var(--text-secondary); line-height: 1.8; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 12px;">{{ leave['reason'] }}</p>
+            </div>
+
+            <div class="detail-section">
+                <h3>Signatures</h3>
+                <div class="signatures">
+                    <div class="signature-section">
+                        <h4 style="margin-bottom: 12px; color: var(--text-secondary);">Student Signature</h4>
+                        {% if leave['student_signature'] %}
+                        <img src="data:image/png;base64,{{ leave['student_signature'] }}" alt="Student Signature" class="signature-image" style="max-width: 300px; background: white; border-radius: 8px;">
+                        {% else %}
+                        <p style="color: var(--text-secondary);">No signature on file</p>
+                        {% endif %}
+                    </div>
+                    <div class="signature-section">
+                        <h4 style="margin-bottom: 12px; color: var(--text-secondary);">Parent Signature</h4>
+                        {% if leave['parent_signature'] %}
+                        <img src="data:image/png;base64,{{ leave['parent_signature'] }}" alt="Parent Signature" class="signature-image" style="max-width: 300px; background: white; border-radius: 8px;">
+                        {% else %}
+                        <p style="color: var(--text-secondary);">No signature on file</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if leave['status'] == 'pending' %}
+        <div class="form-container" style="margin-top: 32px;">
+            <h3 style="margin-bottom: 20px;">Take Action</h3>
+            <form method="POST" onsubmit="return confirm('Are you sure about this action?');">
+                <div class="form-group">
+                    <label for="remarks">Remarks (Optional)</label>
+                    <textarea id="remarks" name="remarks" placeholder="Add any remarks or reason for your decision..." rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" name="action" value="approve" class="btn-success">Approve Leave</button>
+                    <button type="submit" name="action" value="reject" class="btn-danger">Reject Leave</button>
+                    <a href="{{ url_for('admin_leave_approvals') }}" class="btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+        {% else %}
+        <div class="leave-details-card" style="margin-top: 24px;">
+            <div class="detail-section">
+                <h3>Processing Information</h3>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Status</span>
+                        <span class="status {{ leave['status'] }}">{{ leave['status'] }}</span>
+                    </div>
+                    {% if leave['processed_by'] %}
+                    <div class="detail-item">
+                        <span class="detail-label">Processed By</span>
+                        <span class="detail-value">{{ leave['processed_by'] }}</span>
+                    </div>
+                    {% endif %}
+                    {% if leave['processed_time'] %}
+                    <div class="detail-item">
+                        <span class="detail-label">Processed On</span>
+                        <span class="detail-value">{{ leave['processed_time'] }}</span>
+                    </div>
+                    {% endif %}
+                    {% if leave['admin_remarks'] %}
+                    <div class="detail-item" style="grid-column: 1 / -1;">
+                        <span class="detail-label">Admin Remarks</span>
+                        <span class="detail-value">{{ leave['admin_remarks'] }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}
+
